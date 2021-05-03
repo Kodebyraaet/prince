@@ -1,4 +1,6 @@
-<?php namespace Kodebyraaet\Prince;
+<?php
+
+namespace Kodebyraaet\Prince;
 
 use File;
 use Illuminate\View\View;
@@ -30,7 +32,7 @@ class Prince implements PrinceInterface
      *
      * @var string
      */
-    private $arguments;
+    public $arguments;
 
     /**
      * Echo out error messages.
@@ -64,11 +66,24 @@ class Prince implements PrinceInterface
 
         $this->executable = getenv('PRINCE_EXECUTABLE_PATH') ? getenv('PRINCE_EXECUTABLE_PATH') : '/usr/bin/prince';
 
-        $this->arguments = ' --server -i "html" --silent -';
+        $this->arguments = ['--server', '-i "html"', '--silent', '-'];
 
         $this->displayErrors = true;
 
         $this->useUtf8 = false;
+    }
+
+    /**
+     * Sets command line arguments
+     *
+     * @param Array $arguments
+     * @return $this
+     */
+    public function setArguments($arguments)
+    {
+        $this->arguments = array_merge($this->arguments, $arguments);
+
+        return $this;
     }
 
     /**
@@ -115,11 +130,11 @@ class Prince implements PrinceInterface
             'Content-Type' => 'application/pdf',
         ];
 
-        if($filename != null) {
-            if($attachment) {
-                $headers['Content-Disposition'] = 'attachment; filename="' . $filename .'"';
+        if ($filename != null) {
+            if ($attachment) {
+                $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '"';
             } else {
-                $headers['Content-Disposition'] = 'inline; filename="' . $filename .'"';
+                $headers['Content-Disposition'] = 'inline; filename="' . $filename . '"';
             }
         }
 
@@ -167,7 +182,7 @@ class Prince implements PrinceInterface
 
         // Tries to open up a process of prince at $this->executable path,
         // appends $this->arguments to the executable call.
-        if (!is_resource($process = proc_open($this->executable . $this->arguments, $descriptorSpec, $pipes))) {
+        if (!is_resource($process = proc_open($this->executable . ' ' . implode(' ', $this->arguments), $descriptorSpec, $pipes))) {
             throw new UnableToExecute('Unable to open a prince executable at path ' . $this->executable . '.');
         }
 
@@ -235,5 +250,4 @@ class Prince implements PrinceInterface
     {
         $this->markup = '';
     }
-
 }
